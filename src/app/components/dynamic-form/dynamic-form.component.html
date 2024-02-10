@@ -1,0 +1,81 @@
+<form [formGroup]="dynaForm" (ngSubmit)="onSubmit()">
+  <div>
+    <div class="flex " *ngFor="let control of jsonFormData?.controls">
+      <div *ngIf="control.type === 'header'">
+        <p [ngClass]="ongetStyleClass(control)">{{ control.default }}</p>
+      </div>
+
+      <mat-form-field appearance="outline" *ngIf="
+      [
+        'text',
+        'password',
+        'email',
+        'number',
+        'search',
+        'tel',
+        'url',
+        'date',
+        'datetime-local',
+        'time',
+        'textarea',
+        'select',
+        'multiselect',
+        
+      ].includes(control.type)" [ngClass]="ongetStyleClass(control)">
+
+        <mat-label *ngIf="control.label !== ''">{{ control.label }}</mat-label>
+
+        <input matInput *ngIf="
+      [
+        'text',
+        'password',
+        'email',
+        'number',
+        'search',
+        'tel',
+        'url',
+        'date',
+        'datetime-local',
+        'time'
+      ].includes(control.type)" [type]="control.type" [formControlName]="control.name" [value]="control.avalue"
+          (change)="onSetData()">
+
+        <textarea matInput *ngIf="control.type === 'textarea'" [formControlName]="control.name" [value]="control.avalue"
+          [rows]="control.totalRows || 1" (change)="onSetData()"></textarea>
+
+        <mat-select *ngIf="control.type === 'select'" [formControlName]="control.name" [(value)]="control.avalue"
+          (selectionChange)="onSetData()">
+          <mat-option *ngFor="let selecItem of control.selectOptions" [value]="selecItem.key">
+            {{selecItem.value}}
+          </mat-option>
+        </mat-select>
+        <mat-select *ngIf="control.type === 'multiselect'" [formControlName]="control.name" [(value)]="control.avalue"
+          (selectionChange)="onSetData()" multiple>
+          <mat-option *ngFor="let selecItem of control.selectOptions" [value]="selecItem.key">
+            {{selecItem.value}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <div *ngIf="control.type === 'checkbox'" style="height:40px;" [ngStyle]="ongetStyleClass(control)"
+        class="mat-form-field" [ngStyle]="ongetStyleClass(control)">
+        <mat-checkbox [formControlName]="control.name" [checked]="getBoolState(control.name)"
+          (change)="setBoolState($event, control.name)"></mat-checkbox>
+        {{control.label}}
+      </div>
+
+      <button *ngIf="(control.sideBtn && control.sideBtn.length > 0) || (editBtn && editBtn.length > 0)"
+        class="ml-1 mt-1 h-[3.2rem] w-14 bg-white font-semibold text-violet-500 border border-gray-200 rounded shadow-sm"
+        (click)="onBtnClick($event, control)">
+        <mat-icon>{{getIcon(control)}}</mat-icon>
+      </button>
+
+      <!--
+      <button *ngIf="(control.sideBtn && control.sideBtn.length > 0) || (editBtn && editBtn.length > 0)" mat-icon-button
+        matSuffix class="text-violet-500 mt-0" (click)="onBtnClick($event, control)">
+        <mat-icon>{{getIcon(control)}}</mat-icon>
+      </button>
+      -->
+    </div>
+  </div>
+</form>
