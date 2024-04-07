@@ -1,17 +1,18 @@
-import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter, OnDestroy } from '@angular/core';
 import { NavObserverService } from '../../services/nav-observer.service';
 import { DialogData, DialogService } from '../../services/dialog.service';
 import { LocalstorageService } from '../../services/localstorage.service';
 import { HttpQuoteService } from '../../services/http-quote.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { CotizaWish } from 'src/app/datatypes';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-nav-bar',
   templateUrl: './nav-bar.component.html',
   styleUrls: ['./nav-bar.component.scss']
 })
-export class NavBarComponent implements OnInit {
+export class NavBarComponent implements OnInit, OnDestroy {
 
   @Output() submenuSelected = new EventEmitter<boolean>();
   @Output() whishCatSelected = new EventEmitter<boolean>();
@@ -19,6 +20,7 @@ export class NavBarComponent implements OnInit {
   public prodList!: { [index: string]: any }
   cotizaTtl = 0;
   wishTtl = 0;
+  bagSubs!: Subscription;
 
   readonly menuList = [
     {
@@ -50,9 +52,13 @@ export class NavBarComponent implements OnInit {
     this.badgeObs();
   }
 
+  ngOnDestroy(): void {
+    if (this.bagSubs) this.bagSubs.unsubscribe();
+  }
+
   badgeObs() {
     this.storage.getactualWishQuote();
-    this.storage.getBadgeObs().subscribe(wq => {
+    this.bagSubs = this.storage.getBadgeObs().subscribe(wq => {
       if (wq.list_name === 'wishList') { this.wishTtl = wq.total }
       if (wq.list_name === 'quoteList') { this.cotizaTtl = wq.total }
     });
@@ -137,19 +143,7 @@ export class NavBarComponent implements OnInit {
   }
 
   getWhatsApp() {
-    // let htmtext = `https://wa.me/573104616698/?`;
-    let htmtext = 'https://api.whatsapp.com/send/?phone=573104616698&text=%C2%A1Hola%21+Me+gustar%C3%ADa+recibir+asesor%C3%ADa+comercial.&type=phone_number&app_absent=0';
-    this.onNavigate(htmtext);
-  }
-
-  private onNavigate(rute: string) {
-    if (rute.indexOf('https://') === -1) {
-      rute = 'https://' + rute;
-    }
-    const newWindow = window.open(rute, 'popup',
-      `height=${window.innerHeight}, width=${window.innerWidth}, modal=yes,alwaysRaised=yes,
-        titlebar=no,toolbar=no,location=no,status=no,menubar=no`
-    );
+    this.storage.getWhatsApp();
   }
 
 }

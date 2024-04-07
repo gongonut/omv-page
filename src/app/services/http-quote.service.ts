@@ -35,7 +35,8 @@ export class HttpQuoteService {
 
   createQuote(quote: CotizaWish): Observable<CotizaWish> {
     // const quoteJ = JSON.stringify(quote);
-    quote.date = new Date().getMilliseconds();
+    debugger;
+    quote.date = new Date().getTime();
     return this.httpq.post<CotizaWish>(`${this.storage.QUOTE_SERVER}quote`, quote);
   }
 

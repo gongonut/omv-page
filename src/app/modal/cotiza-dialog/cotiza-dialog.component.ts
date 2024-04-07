@@ -219,7 +219,7 @@ export class CotizaDialogComponent implements OnInit {
   }
 
   onAccept() {
-    
+    debugger;
     if (this.result) {this.dg.updatePropResult(this.data.value, this.result);}
     if (!this.data.value.client_contact || this.data.value.client_contact.length == 0) {
       this.data.value.client_name = this.data.value.client_contact;

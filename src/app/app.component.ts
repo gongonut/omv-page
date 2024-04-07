@@ -16,11 +16,12 @@ export class AppComponent {
   // public prodList!:  any[];
 
   constructor(
-    
     private storage: LocalstorageService,
     public nvg: NavObserverService,
     private router: Router,
-    ) { }
+    ) {
+      
+    }
 
   ngOnInit(): void {
     this.nvg.setReady();

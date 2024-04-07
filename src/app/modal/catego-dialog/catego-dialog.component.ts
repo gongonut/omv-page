@@ -47,7 +47,7 @@ export class CategoDialogComponent {
   
   getImage(cat: CatTree): string {
     // console.log(`${this.storage.QUOTE_SERVER + 'catalog/'}${this.removeAccents(cat.categ)}.PNG`)
-    debugger;
+    
     return `${this.storage.QUOTE_SERVER + 'catalog/'}${this.removeAccents(cat.categ)}.PNG`;
     // return this.storage.QUOTE_SERVER + 'assets/images/empty.png';
   }

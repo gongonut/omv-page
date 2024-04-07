@@ -20,7 +20,7 @@ export interface Filter {
   providedIn: 'root'
 })
 export class LocalstorageService {
-  readonly DEV_STATUS=true;
+  readonly DEV_STATUS=false;
   readonly QUOTE_SERVER = this.DEV_STATUS? 'http://localhost:3000/' : `https://${window.location.hostname}/`; // 'https://omv-production.up.railway.app/'; // 'https://catalogos.omvpublicidadsas.com/';
   // readonly QUOTE_SERVER = 'http://localhost:3000/'; // 'https://omv-production.up.railway.app/'; // 'https://catalogos.omvpublicidadsas.com/';
   selMenu = [0, -1];
@@ -203,30 +203,23 @@ export class LocalstorageService {
       let subcat = categoria.subcateg?.find(subcat => subcat === subcat1);
       if (!subcat) categoria.subcateg?.push(subcat1);
     }
-    /*
-    if (subcat2 && subcat2.length > 0) {
-      let subcat = categoria.subcateg?.find(subcat => subcat === subcat2);
-      if (!subcat) categoria.subcateg?.push(subcat2);
-    }
-    */
+
   }
 
-  /*
-  addToCatTree(categ: string = 'root', subcat1: string, subcat2: string) {
-    let categoria = this.categTree.find((cat: CatTree) => cat.categ === categ);
-    if (!categoria) {
-      categoria = { categ, subcateg: [] };
-      this.categTree.push(categoria);
-    }
-    if (subcat1 && subcat1.length > 0) {
-      let subcat = categoria.subcateg?.find(subcat => subcat === subcat1);
-      if (!subcat) categoria.subcateg?.push(subcat1);
-    }
-    if (subcat2 && subcat2.length > 0) {
-      let subcat = categoria.subcateg?.find(subcat => subcat === subcat2);
-      if (!subcat) categoria.subcateg?.push(subcat2);
-    }
+  getWhatsApp() {
+    // let htmtext = `https://wa.me/573104616698/?`;
+    let htmtext = 'https://api.whatsapp.com/send/?phone=573184567439&text=%C2%A1Hola%21+Me+gustar%C3%ADa+recibir+asesor%C3%ADa+comercial.&type=phone_number&app_absent=0';
+    this.onNavigate(htmtext);
   }
-  */
+
+  private onNavigate(rute: string) {
+    if (rute.indexOf('https://') === -1) {
+      rute = 'https://' + rute;
+    }
+    const newWindow = window.open(rute, 'popup',
+      `height=${window.innerHeight}, width=${window.innerWidth}, modal=yes,alwaysRaised=yes,
+        titlebar=no,toolbar=no,location=no,status=no,menubar=no`
+    );
+  }
 
 }

@@ -1,6 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { Imagenes, Materiales } from 'src/app/datatypes';
+import { Subscription } from 'rxjs';
+import { CotizaWish, Imagenes, Materiales } from 'src/app/datatypes';
+import { DialogData, DialogService } from 'src/app/services/dialog.service';
+import { HttpQuoteService } from 'src/app/services/http-quote.service';
 import { LocalstorageService } from 'src/app/services/localstorage.service';
 import { NavObserverService } from 'src/app/services/nav-observer.service';
 
@@ -9,39 +12,58 @@ import { NavObserverService } from 'src/app/services/nav-observer.service';
   templateUrl: './item-detail.component.html',
   styleUrls: ['./item-detail.component.scss']
 })
-export class ItemDetailComponent  implements OnInit{
+export class ItemDetailComponent implements OnInit, OnDestroy {
 
   constructor(
     public storage: LocalstorageService,
     private snkBar: MatSnackBar,
-    private nvg: NavObserverService) {}
+    private nvg: NavObserverService,
+    private http_quote: HttpQuoteService,
+    private dg: DialogService
+  ) { }
 
   imageList: Imagenes[] = [];
-  imageOptionList: {nombre: string, codigo: string}[] = [];
+  imageOptionList: { nombre: string, codigo: string }[] = [];
   imageSMList: string[] = [];
   private imageXLList: string[] = [];
   SelImg = '';
   private selMaterial!: Materiales;
+  cotizaTtl = 0;
+  wishTtl = 0;
+  bagSubs!: Subscription;
 
   ngOnInit() {
     this.getImageLists();
     this.SelImg = this.imageXLList[0] || '';
+    this.badgeObs();
   }
 
+  ngOnDestroy(): void {
+    if (this.bagSubs) this.bagSubs.unsubscribe();
+  }
+
+  badgeObs() {
+    this.storage.getactualWishQuote();
+    this.bagSubs = this.storage.getBadgeObs().subscribe(wq => {
+      if (wq.list_name === 'wishList') { this.wishTtl = wq.total }
+      if (wq.list_name === 'quoteList') { this.cotizaTtl = wq.total }
+    });
+  };
+
   private getImageLists(code: string = '') {
-    
+
     // console.log( typeof( this.selMaterial));
     this.imageList = [];
-    this.imageOptionList = [{codigo: '', nombre: 'Todo'}];
+    this.imageOptionList = [{ codigo: '', nombre: 'Todo' }];
     this.storage.selItem.materiales.forEach(mti => {
-      this.imageOptionList.push({codigo: mti.codigo, nombre: mti.color_nombre});
+      this.imageOptionList.push({ codigo: mti.codigo, nombre: mti.color_nombre });
     });
     if (code.length === 0) {
-      
+
       this.selMaterial = this.storage.selItem.materiales[-1];
-      if (this.storage.selItem.imagenes) {this.imageList = [...this.storage.selItem.imagenes];}
+      if (this.storage.selItem.imagenes) { this.imageList = [...this.storage.selItem.imagenes]; }
       this.storage.selItem.materiales.forEach(mat => {
-        this.imageList = [...this.imageList,...mat.imagenes];
+        this.imageList = [...this.imageList, ...mat.imagenes];
       });
       /*
       this.selMaterial = this.storage.selItem.materiales[-1];
@@ -55,14 +77,14 @@ export class ItemDetailComponent  implements OnInit{
       const mat = this.storage.selItem.materiales.find(mt => mt.codigo === code);
       if (mat) {
         this.selMaterial = mat;
-        this.imageList = [...this.imageList,...mat.imagenes];
+        this.imageList = [...this.imageList, ...mat.imagenes];
       }
     }
     this.imageSMList = []; this.imageXLList = [];
     this.imageList.forEach(iml => {
       this.imageSMList.push(iml.imagen.file_sm); this.imageXLList.push(iml.imagen.file_md);
     })
-    
+
   }
 
   setImage(index: number) {
@@ -73,7 +95,8 @@ export class ItemDetailComponent  implements OnInit{
     if (this.selMaterial) {
       return this.selMaterial.inventario || 0
     } else {
-      return Number(this.storage.selItem.existencia) || 0}
+      return Number(this.storage.selItem.existencia) || 0
+    }
   }
 
   /*
@@ -83,7 +106,7 @@ export class ItemDetailComponent  implements OnInit{
   */
 
   add2Cotiza() {
-    
+
     if (!this.selMaterial) {
       this.snkBar.open('Debe seleccionar un color o estilo', 'Ok', { duration: 3000 });
       return;
@@ -99,18 +122,63 @@ export class ItemDetailComponent  implements OnInit{
     this.storage.addWishQuote('0', this.storage.selItem);
   }
 
-  onSelectEvent(value: any){
+  onSelectEvent(value: any) {
     this.getImageLists(value);
     if (this.imageXLList.length > 0) this.setImage(0);
   }
 
-  async  onSelected(event: any) {
+  async onSelected(event: any) {
     this.goBack();
-   
+
   }
 
   goBack() {
     this.nvg.onRouteDetail('', '', 'itemlist', true);
+  }
+
+  // ...................................................................................
+  wishQuoteModule(what: string): void {
+
+    let tit = '';
+    let list!: CotizaWish;
+
+    switch (what) {
+      case '0':
+        if (this.wishTtl === 0) return;
+        tit = 'Lista de Favoritos';
+        list = this.storage.wishList;
+        break;
+      case '1':
+        if (this.cotizaTtl === 0) return;
+        tit = 'Módulo de Cotizaciones';
+        list = this.storage.quoteList;
+        break;
+    }
+
+    const ddta: DialogData = {
+      title: tit,
+      tag: what,
+      value: list,
+    }
+    this.dg.aactualQuote(ddta).subscribe((result: any) => {
+
+      if (this.storage.quoteList.status === 1) {
+        this.http_quote.createQuote(list).subscribe({
+          error: (e) => this.snkBar.open(`Error al enviar la cotización. Intente más tarde. -- ${e.error}`, 'Listo', { duration: 3000 }),
+          complete: () => {
+            this.storage.deleteactualWidhQuote('1');
+            this.snkBar.open(`Su solicitud ha sido enviada, responderemos en el menor tiempo posible`, 'Listo', { duration: 3000 })
+          }
+        });
+      } else {
+        this.storage.saveWishQuote(what);
+        // if (this.storage.filter.seltype === 2) { this.whishCatSelected.emit(true); }
+      }
+    });
+  }
+
+  getWhatsApp() {
+    this.storage.getWhatsApp()
   }
 
 
