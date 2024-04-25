@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { NavObserverService } from './services/nav-observer.service';
 import { Router } from '@angular/router';
 import { LocalstorageService } from './services/localstorage.service';
+import { HttpQuoteService } from './services/http-quote.service';
 
 @Component({
   selector: 'app-root',
@@ -16,6 +17,7 @@ export class AppComponent {
   // public prodList!:  any[];
 
   constructor(
+    
     private storage: LocalstorageService,
     public nvg: NavObserverService,
     private router: Router,
@@ -23,10 +25,11 @@ export class AppComponent {
       
     }
 
-  ngOnInit(): void {
-    this.nvg.setReady();
+  async ngOnInit() {
+    
     this.navObserver();
     this.storage.getScreenWidth();
+    this.nvg.setReady();
     this.nvg.onRouteDetail('', '', 'itemlist', true);
   }
 

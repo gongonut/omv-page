@@ -31,6 +31,8 @@ export class ItemListComponent implements OnInit {
   }
 
   async ngOnInit() {
+
+    await this.http_omv.getMARPICO();
     // selecciona católogo 1
     // await this.onSelected('');
     if (this.storage.itemList2Show.length === 0) {
@@ -54,35 +56,37 @@ export class ItemListComponent implements OnInit {
   }
 
   async onSelected(event: any) {
-
+    this.nvg.showProgress = true;
     switch (this.storage.selMenu[1]) {
 
       case 0: // Marpico
         title: 'Marpico';
         this.storage.filter = { seltype: 0, catFilter: ['Seleccione una categoría', '...'] };
-        await this.http_marpico.getMarpicoDataPromise('MARPICO');
-        // this.http_marpico.getData();
+        await this.http_omv.getMARPICOCatsDataPromise('MARPICO');
+        // await this.http_marpico.getMarpicoDataPromise('MARPICO');
+
         break;
 
-        case 1: // OMV
+      case 1: // OMV
         title: 'omv';
         this.storage.filter = { seltype: 0, catFilter: ['Seleccione una categoría', '...'] };
         await this.http_omv.getOMVCatsDataPromise('OMV');
-        // this.http_marpico.getData();
+
         break;
 
 
     }
     this.nvg.showProgress = false;
     this.getCat();
-    
+
   }
 
   async onCatWishSel() {
 
     switch (this.storage.filter.catalogTitle) {
       case 'MARPICO': // Marpico
-        await this.http_marpico.getMarpicoDataPromise('MARPICO');
+        await this.http_omv.getMARPICOCatsDataPromise('MARPICO');
+        //await this.http_marpico.getMarpicoDataPromise('MARPICO');
         break;
       case 'OMV': // OMV
         await this.http_omv.getOMVCatsDataPromise('OMV');
@@ -94,7 +98,7 @@ export class ItemListComponent implements OnInit {
 
   getCat() {
     // const h = this.storage.screenShort ? 0 : 400;
-    
+
     if (this.storage.itemList2Show.length > 0) {
       const ddta: DialogData = {
         title: 'Seleccionar Categoría/Subcategoría ',
@@ -103,7 +107,7 @@ export class ItemListComponent implements OnInit {
         value: this.storage.categTree,
       }
       this.dg.aShowCateg(ddta).subscribe((result: any) => {
-    
+
         if (result) { this.storage.filter = result as Filter }
       });
     } else {
@@ -112,7 +116,7 @@ export class ItemListComponent implements OnInit {
   }
 
   filterItem(item: Item): boolean {
-    
+
     switch (this.storage.filter.seltype) {
       case 0:
         return item.subcategoria_1.categoria.nombre === this.storage.filter.catFilter[0] && item.subcategoria_1.nombre === this.storage.filter.catFilter[1];

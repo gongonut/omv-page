@@ -135,9 +135,13 @@ export class CotizaDialogComponent implements OnInit {
   }
 
   getImage(item: Item): string {
+    if (item.materiales[0].imagenes.length > 0 ) return item.materiales[0].imagenes[0];
+    return item.imagen;
     
+    /*
     if (item.materiales[0].imagenes.length > 0 && item.materiales[0].imagenes[0].imagen.file_sm) return item.materiales[0].imagenes[0].imagen.file_sm;
     return item.imagen.imagen.file_sm;
+    */
   }
 
   onGetItem(item: Item) {
@@ -219,7 +223,7 @@ export class CotizaDialogComponent implements OnInit {
   }
 
   onAccept() {
-    debugger;
+    
     if (this.result) {this.dg.updatePropResult(this.data.value, this.result);}
     if (!this.data.value.client_contact || this.data.value.client_contact.length == 0) {
       this.data.value.client_name = this.data.value.client_contact;

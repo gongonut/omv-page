@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Subscription } from 'rxjs';
-import { CotizaWish, Imagenes, Materiales } from 'src/app/datatypes';
+import { CotizaWish, Materiales } from 'src/app/datatypes';
 import { DialogData, DialogService } from 'src/app/services/dialog.service';
 import { HttpQuoteService } from 'src/app/services/http-quote.service';
 import { LocalstorageService } from 'src/app/services/localstorage.service';
@@ -22,7 +22,7 @@ export class ItemDetailComponent implements OnInit, OnDestroy {
     private dg: DialogService
   ) { }
 
-  imageList: Imagenes[] = [];
+  imageList: string[] = [];
   imageOptionList: { nombre: string, codigo: string }[] = [];
   imageSMList: string[] = [];
   private imageXLList: string[] = [];
@@ -82,7 +82,8 @@ export class ItemDetailComponent implements OnInit, OnDestroy {
     }
     this.imageSMList = []; this.imageXLList = [];
     this.imageList.forEach(iml => {
-      this.imageSMList.push(iml.imagen.file_sm); this.imageXLList.push(iml.imagen.file_md);
+      // this.imageSMList.push(iml.imagen.file_sm); this.imageXLList.push(iml.imagen.file_md);
+      this.imageSMList.push(iml); this.imageXLList.push(iml);
     })
 
   }

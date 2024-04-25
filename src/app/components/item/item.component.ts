@@ -15,7 +15,8 @@ export class ItemComponent {
 
   getImage(): string {
     
-    if (this.item.imagen && this.item.imagen.imagen && this.item.imagen.imagen.file_sm) { return this.item.imagen.imagen.file_sm || ''; }
+    // if (this.item.imagen && this.item.imagen.imagen && this.item.imagen.imagen.file_sm) { return this.item.imagen.imagen.file_sm || ''; }
+    if (this.item.imagen && this.item.imagen.length > 0) { return this.item.imagen; }
     return '';
   }
 

@@ -92,9 +92,9 @@ export interface Item {
     temas: string[]
     etiquetas: Etiqueta[]
     etiqList: []
-    imagenes: Imagenes[]
+    imagenes: string[];
     materiales: Materiales[]
-    imagen: Imagenes
+    imagen: string;
     tag?: any;
     lista_colores?: string;
 }
@@ -120,7 +120,7 @@ export interface Materiales {
     descuento: string
     estado: string
     inventario: number
-    imagenes: Imagenes[]
+    imagenes: string[]
 }
 
 export interface InventarioAlmacen {
@@ -150,6 +150,7 @@ export interface TrackingsImportacion {
     material_id: number
 }
 
+/*
 export interface Imagen {
     file: string
     file_sm: string
@@ -162,6 +163,7 @@ export interface Imagenes {
     orden?: number;
     nombre_original?: string;
 }
+*/
 
 export interface Etiqueta {
     id: 30;

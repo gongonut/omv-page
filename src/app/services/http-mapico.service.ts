@@ -15,7 +15,8 @@ import { Item, Etiqueta } from '../datatypes';
 // implements HttpInterceptor
 export class HttpMapicoService implements HttpInterceptor {
   private api_key = 'KlRAzNmCqZFnJTEnOPmyRC2t2WLs8xylfGMbogjGnfcb02wlvaUYXIeiNaLAQKAI';
-  private url = 'https://marpicoprod.azurewebsites.net/api/inventarios';
+  private url = 'https://apipromocionales.marpico.co/api/inventarios';
+  // private url = 'https://marpicoprod.azurewebsites.net/api/inventarios';
 
   force = false;
 
@@ -42,7 +43,7 @@ export class HttpMapicoService implements HttpInterceptor {
 
     const requestOptions = {
       headers: aheaders,
-      // withCredentials: true
+      
     };
     const suburl = '/materialesAPI';
     return this.http.get<any[]>(`${this.url}${suburl}`, requestOptions)
@@ -51,20 +52,19 @@ export class HttpMapicoService implements HttpInterceptor {
   async getMarpicoDataPromise(catName: string) {
     return new Promise(async resolve => {
       
-      
       if (this.storage.selCatalogTitle === catName && this.storage.itemList2Show.length > 0) {
         resolve(true); return;
       }
       const sub = this.getFullData()
         .subscribe({
           next: (data) => {
-      
+            
             if (sub) { sub.unsubscribe(); }
-            // console.log(data);
+            console.log(data);
             
             this.storage.itemList2Show = (data as { [key: string]: any })['results'] as Item[];
             
-            if (this.storage.itemList2Show.length > 0) { this.storage.resolveData(this.storage.itemList2Show); }
+            if (this.storage.itemList2Show.length > 0) { this.storage.resolveDataMARPICO(this.storage.itemList2Show); }
             this.storage.selCatalogTitle = catName;
             resolve(true);
           },
@@ -86,7 +86,7 @@ export class HttpMapicoService implements HttpInterceptor {
       const URL = '../assets/articulos.json';
       const dataArray = await lastValueFrom(this.http.get(URL)) as Item[];
       if (dataArray.length > 0) {
-        this.storage.resolveData(dataArray);
+        this.storage.resolveDataMARPICO(dataArray);
         this.storage.itemList2Show = dataArray;
         this.storage.addUpdateLocalItemList(dataArray, 'MARPICO');
         resolve(true);

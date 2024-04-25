@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { CotizaWish, Etiqueta, Item, ItemTag, Materiales } from '../datatypes';
 import { StorageMap } from '@ngx-pwa/local-storage';
-import { Subject, Observable } from 'rxjs';
+import { Subject, Observable, firstValueFrom } from 'rxjs';
 
 export interface CatTree {
   categ: string;
@@ -20,7 +20,7 @@ export interface Filter {
   providedIn: 'root'
 })
 export class LocalstorageService {
-  readonly DEV_STATUS=false;
+  readonly DEV_STATUS=true;
   readonly QUOTE_SERVER = this.DEV_STATUS? 'http://localhost:3000/' : `https://${window.location.hostname}/`; // 'https://omv-production.up.railway.app/'; // 'https://catalogos.omvpublicidadsas.com/';
   // readonly QUOTE_SERVER = 'http://localhost:3000/'; // 'https://omv-production.up.railway.app/'; // 'https://catalogos.omvpublicidadsas.com/';
   selMenu = [0, -1];
@@ -35,10 +35,11 @@ export class LocalstorageService {
   quoteList!: CotizaWish;
   screenShort = false;
   milisecDay = 86400000;
+  marpicoCatTitleList: {key: string, value: string}[] = []
 
   private badgeObs = new Subject<{ list_name: string, total: number }>();
 
-  constructor(private storage: StorageMap) { }
+  constructor(private storage: StorageMap, ) { }
 
   getBadgeObs(): Observable<{ list_name: string, total: number }> {
     return this.badgeObs.asObservable();
@@ -156,10 +157,12 @@ export class LocalstorageService {
 
   };
 
-  resolveData(data: Item[]) {
+  resolveDataOMV(data: Item[]) {
+    
     this.categTree = [];
+    
     data.forEach((item: Item) => {
-
+      
       item.existencia = 0;
       item.materiales.forEach((mat: any) => {
         item.precio = item.precio || mat.precio;
@@ -176,14 +179,80 @@ export class LocalstorageService {
       let catList = item.subcategoria_1 as { nombre: string, categoria: { nombre: string } };
       const subcateg_1 = catList.nombre || '';
       const categ = catList.categoria.nombre;
-      catList = item.subcategoria_2 as { nombre: string, categoria: { nombre: string } };
-      // let subcateg_2 = '';
-      // if (catList) { subcateg_2 = catList.nombre || '' }
-      // this.addToCatTree(categ, subcateg_1, subcateg_2);
+      //catList = item.subcategoria_2 as { nombre: string, categoria: { nombre: string } };
+      
       this.addToCatTreeSimple(categ, subcateg_1);
     });
     this.sortCat();
   }
+
+  async resolveDataMARPICO(data: Item[]) {
+    this.categTree = [];
+
+    
+    data.forEach((item: any) => {
+      debugger;
+      item.existencia = 0;
+      let cantidad = 0;
+      item.materiales.forEach((mat: any) => {
+        item.precio = item.precio || mat.precio;
+        mat.inventario = 0;
+        mat.inventario_almacen.forEach((c: { cantidad: number; }) => mat.inventario += c.cantidad || 0);
+        mat.inventario = mat.inventario;
+        cantidad += mat.inventario;
+      });
+      item.existencia += cantidad;
+      if (item.etiquetas) {
+        const etiqList: string[] = [];
+        item.etiquetas.forEach((etiq: Etiqueta) => {
+          if (etiq && etiq.nombre) { etiqList.push(etiq['nombre']) }
+        });
+      }
+
+      // imagenes
+      // item.imagenes = [...this.getImagenesItem(item)];
+
+      
+      /*
+      let catList = item.subcategoria_1 as { jerarquia:string, nombre: string, categoria: { jerarquia: string, nombre: string } };
+      const subcateg_1 = catList.nombre || '';
+      const categ = catList.categoria.nombre;
+      */
+      debugger;
+      item.subcategoria_1.categoria = this.addToCatMARPICOTreeSimple(item.subcategoria_1.categoria, item.subcategoria_1.nombre);
+      item.subcategoria_1 = { jerarquia: item.subcategoria_1.jerarquia, nombre: item.subcategoria_1.nombre, categoria: { jerarquia: item.subcategoria_1.categoria, nombre: item.subcategoria_1.categoria } };
+    });
+    this.sortCat();
+  }
+
+  addToCatMARPICOTreeSimple(categ: string = 'root', subcat1: string): string {
+debugger;
+    const catname = this.marpicoCatTitleList.find(x => x.key === categ)?.value;
+    if (!catname) {return 'No se encontró la categoría en el listado de categorias'; }
+    let categoria = this.categTree.find((cat: CatTree) => cat.categ === catname);
+    if (!categoria) {
+      categoria = { categ: catname, subcateg: [] };
+      this.categTree.push(categoria);
+    }
+    if (subcat1 && subcat1.length > 0) {
+      let subcat = categoria.subcateg?.find(subcat => subcat === subcat1);
+      if (!subcat) categoria.subcateg?.push(subcat1);
+    }
+    return catname ;
+  }
+
+
+/*
+  private img2obj(img: string) {
+    return  {
+      id: 1,
+      imagen: {
+        file_md: img,
+        file_sm: img,
+      }
+    }
+  }
+*/
 
   private sortCat() {
     
@@ -193,7 +262,8 @@ export class LocalstorageService {
     })
   }
 
-  addToCatTreeSimple(categ: string = 'root', subcat1: string) {
+  async addToCatTreeSimple(categ: string = 'root', subcat1: string) {
+
     let categoria = this.categTree.find((cat: CatTree) => cat.categ === categ);
     if (!categoria) {
       categoria = { categ, subcateg: [] };
